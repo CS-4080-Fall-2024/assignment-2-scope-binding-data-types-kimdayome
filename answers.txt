@@ -1,0 +1,242 @@
+# CS4080-Fall-2024
+# Assignment 2: Rubik's Cube Stimulation and Scope Concepts Assignment
+# Dayoung Kim
+# Bronco ID : 016586115
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+Problem 1: Parse Tree and Leftmost Derivation
+
+* expression given:
+
+A = B * (C * (A + B))
+
+* Grammer given:
+
+Statement -> Assignment | Expression: A statement can be either an assignment or an expression
+
+Assignment -> Identifier = Expression: An assignment consists of an identifier (A,B,C ...) on the left, with an equal sign =, and an expression on the right
+
+Expression -> Expression + Term | Term: An expression can be an expression + a term or just its term
+
+Term -> Term * Factor | Fractor: A term can be a term * a factor of just its factor
+
+Factor -> (Expression) | Identifier: A factor can be either an expression inside parentheses or just its factor
+
+Identifier -> A | B | C: Identifiers can be A, B, or C
+
+* Applying the grammar rules to the expression given
+
+1. This is an assignment because the form of this is 'A = ....', so we are going to use the rule 'Assignment -> Identifier = Expression' Left side is an identifier and the right side is an expression.
+
+2. The right side 'B * (C * (A + B))' involves multiplication. therefore, we use the rule 'Expression -> Term'. This is an expression made of a term (multiplication part).
+
+3. For the term B * (C * (A + B)), As I mentioned earlier, this is the multiplication of B and something inside parentheses. So, we are going to use the rule 'Term -> Term * Factor'
+
+Where:
+
+Term = B
+Factor = (C * (A + B))
+
+4. For the Factor (C * (A + B)), the factor inside the parentheses is another multiplication, so we can treat it as a new 'term' and 'factor'. The whole factor, we use the rule 'Factor -> (Expression)'.
+
+- The whole thing (C * (A + B)) is a factor based on the rule 'Factor -> (Expression)', which is inside parentheses
+- Inside the parentheses, C * (A + B) is again broken down as term(C) * factor(A + B) based on 'Term -> Term * Factor'
+
+5. Finally, innermost the parentheses, which is (A+B), there is an addition. so we apply the rule 'Expression -> Expression + Term'
+
+Where:
+
+Expression: A
+Term: B
+
+* Leftmost Derivation for A = B * (C * (A + B))
+
+1. Statement -> Assignment, so we have A(Identifier) = Expression
+
+2. The expression becomes a term (since the expression is a multiplication) : A = Term
+
+3. Term becomes term * factor : A = B * Factor
+
+4. Factor becomes (expression) since the factor is inside parentheses : A = B * (Expression)
+
+5. Expression becomes term = A = B * (Term)
+
+6. Term becomes term * factor : A = B * (Term * Factor)
+
+7. Factor becomes (Expression) since it involves an addition : A = B * (Term * ((Expression))
+
+8. Expression becomes Expression + Term since it consists of multiplication : A = B * (Term * (Expression + Term))
+
+9. A = B * (C * (A+B))
+
+Therefore,
+
+1. Statement -> Assignment
+2. Assignment -> A = Expression
+3. A = Expression -> A = Term
+4. A = Term -> A = B * Factor
+5. A = B * Factor -> A = B * (Expression)
+6. A = B * (Expression) -> A = B * (C * Term)
+7. A = B * (Term) -> A = B * (C * Factor)
+8. A = B * (C * Factor) -> A = B * (C * (Expression))
+9. A = B * (C * (Expression)) -> A = B * (C * (A + Term))
+10. A = B * (C * (A + Term)) -> A = B * (C * (A + B))
+
+* Final Parse Tree
+
+- Left: identifier A
+- Right: Expression B * (C * (A + B))
+
+Assignment
+   ├── Identifier: A
+   └── Expression
+         ├── Term: B
+         └── *
+         └── Factor ( )
+               └── Expression
+                     ├── Term: C
+                     └── *
+                     └── Factor ( )
+                           └── Expression
+                                 ├── Identifier: A
+                                 └── +
+                                 └── Term: Identifier B
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+Problem 2: Score Concepts
+
+Question a : Using Static Scope, what is printed to the screen?
+
+- For the static scoping, the global values of variables are used. bindings are decided at the time of declaration, so it's not when the function is called.
+
+* Global Scope:
+
+u = 42, v = 69, w = 17
+
+* foo(u, 13) is called: 
+
+inside foo: v := u = 42, w := 13
+
+* bar(add) is called:
+
+inside bar: u := w = 17 
+
+* add(v) is called:
+
+inside add: u := v + u + z = 69 + 42 + 69 = 180, using the global u, which is 42 and global v, which is 69 because the static scope ignores local variables (u was assigned 17 in the bar, but ignores local variables and uses the global u instead, going back to being 42)
+
+* Final answer : print(u) prints 180
+
+Global Scope
+--------------
+u = 42
+v = 69
+w = 17
+
+foo(u, 13)
+--------------
+v = 42
+w = 13
+
+bar(add)
+--------------
+u = 17
+v = 42 (foo's v)
+        
+add(v)
+--------------
+u = 180
+v = 69 (global)
+z = 69
+
+Question b : Using Dynamic Scope with Deep Binding, what is printed to the screen?
+
+- For the dynamic scoping with deep binding, the function's variables are linked to the values from when the function was created. so for example, when add was defined, it uses the variables from that time.
+
+* Global Scope:
+
+u = 42, v = 69, w = 17
+
+* foo(u, 13) is called: 
+
+inside foo: v := u = 42, w := 13
+
+* bar(add) is called:
+
+inside bar: u := w = 17 
+
+* add(v) is called:
+
+inside add: v + u + z = 42 + 42 + 42 = 126, the local v from 'foo' is used because of deep binding. so after calling add(v), it will be u = 126 (local u is updated inside add, not global)
+
+* Fianl answer : print(u) prints 42 (because global u was never updated, 126 is not affecting the global)
+
+Global Scope
+--------------
+u = 42
+v = 69
+w = 17
+
+foo(u, 13)
+--------------
+v = 42
+w = 13
+
+bar(add)
+--------------
+u = 17
+v = 42 (foo's v )
+        
+add(v)
+--------------
+u = 126
+v = 42 (also foo's v)
+z = 42
+
+Question c : Using Dynamic Scope with Shallow Binding, what is printed to the screen?
+
+- For the dynamic scope with shallow binding, the function uses the variables from when it is actually called. so the values come from the function that calls it.
+
+* Global Scope:
+
+u = 42, v = 69, w = 17
+
+* foo(u, 13) is called: 
+
+inside foo: v := u = 42, w := 13
+
+* bar(add) is called:
+
+inside bar: u := w = 17 
+
+* add(v) is called:
+
+inside add: u := v + u + z = 42 + 13 + 42 = 97, v = 42 (from foo), u = 13 (also from foo, as w was passed as 13), z = 42 (the local v from foo, passed as z to add)
+
+* Final answer : print(u) prints 42 (because global u was never updated)
+
+Global Scope
+--------------
+u = 42
+v = 69
+w = 17
+
+foo(u, 13)
+--------------
+v = 42
+w = 13
+
+bar(add)
+--------------
+u = 17
+v = 42 (foo's v)
+        
+add(v)
+--------------
+u = 97
+v = 42 (foo's v)
+z = 42
+
+
